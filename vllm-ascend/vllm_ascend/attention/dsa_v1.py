@@ -2424,6 +2424,32 @@ class AscendDSAImpl(DSAAttentionImpl):
                 layout_q="TND",
                 layout_kv="PA_ND",
             )[0]
+        # Moh_7596-fix: DSV4_DBG decode probe (gated; first ~16 calls only)
+        if __import__("os").environ.get("DSV4_DBG", "0") == "1":
+            _n = globals().get("_DSV4_DBG_N", 0)
+            if _n < 16:
+                globals()["_DSV4_DBG_N"] = _n + 1
+                _sys = __import__("sys")
+                def _st(t):
+                    try:
+                        return f"shape={tuple(t.shape)} absmean={t.float().abs().mean().item():.3e} absum={t.float().abs().sum().item():.3e}"
+                    except Exception as _e:
+                        return f"<err {_e}>"
+                _m = [f"[DSV4_DBG] decode {layer_name} cr={self.compress_ratio} n_local_heads={self.n_local_heads}"]
+                _m.append(f"q[{_st(q)}]")
+                _m.append(f"attn_out[{_st(attn_output)}]")
+                try: _m.append(f"swa_kv[{_st(swa_kv_cache)}]")
+                except Exception: pass
+                try: _m.append(f"seqK={actual_seq_lengths_key[:6].tolist()} qsl={actual_seq_lengths_query[:6].tolist()}")
+                except Exception: pass
+                try: _m.append(f"swa_bt0={swa_decode_metadata.block_table[0][:8].tolist()}")
+                except Exception: pass
+                if self.compress_ratio == 4:
+                    try: _m.append(f"cmp_kv[{_st(compress_kv_cache)}]")
+                    except Exception: pass
+                    try: _m.append(f"topk uniq={int(compress_topk_idxs.unique().numel())} head={compress_topk_idxs.flatten()[:8].tolist()}")
+                    except Exception: pass
+                print(" | ".join(_m), file=_sys.stderr, flush=True)
         return attn_output
 
     def _indexer_qkv_prepare(
