@@ -724,7 +724,8 @@ class AscendDSAMetadataBuilder(AttentionMetadataBuilder[AscendDSAMetadata]):
         self.start_pos_prefill[:num_prefill] = self.seq_lens[reqs_start:] - seq_lens_q
 
         tp_size = get_tensor_model_parallel_world_size()
-        n_local_heads = self.model_config.hf_config.num_attention_heads // tp_size
+        _og = getattr(self.model_config.hf_config, 'o_groups', tp_size)  # Moh_7596-fix: honor _replicate_attn (TP>o_groups)
+        n_local_heads = (self.model_config.hf_config.num_attention_heads if tp_size > _og else self.model_config.hf_config.num_attention_heads // tp_size)
         index_topk = self.model_config.hf_config.index_topk
 
         cu_c4_cmp_seqlen_list = None
@@ -972,7 +973,8 @@ class AscendDSAMetadataBuilder(AttentionMetadataBuilder[AscendDSAMetadata]):
             self.block_table[num_reqs_actual : self.num_decodes, ...].fill_(0)
 
         tp_size = get_tensor_model_parallel_world_size()
-        n_local_heads = self.model_config.hf_config.num_attention_heads // tp_size
+        _og = getattr(self.model_config.hf_config, 'o_groups', tp_size)  # Moh_7596-fix: honor _replicate_attn (TP>o_groups)
+        n_local_heads = (self.model_config.hf_config.num_attention_heads if tp_size > _og else self.model_config.hf_config.num_attention_heads // tp_size)
         index_topk = self.model_config.hf_config.index_topk
 
         assert self.decode_sas_metadata is not None
@@ -1175,7 +1177,8 @@ class AscendDSAMetadataBuilder(AttentionMetadataBuilder[AscendDSAMetadata]):
         **kwargs,
     ) -> AscendDSAPrefillMetadata:
         tp_size = get_tensor_model_parallel_world_size()
-        n_local_heads = self.model_config.hf_config.num_attention_heads // tp_size
+        _og = getattr(self.model_config.hf_config, 'o_groups', tp_size)  # Moh_7596-fix: honor _replicate_attn (TP>o_groups)
+        n_local_heads = (self.model_config.hf_config.num_attention_heads if tp_size > _og else self.model_config.hf_config.num_attention_heads // tp_size)
 
         reqs_start = kwargs.get("reqs_start")
         tokens_start = kwargs.get("tokens_start")
@@ -1245,7 +1248,8 @@ class AscendDSAMetadataBuilder(AttentionMetadataBuilder[AscendDSAMetadata]):
         **kwargs,
     ) -> AscendDSADecodeMetadata:
         tp_size = get_tensor_model_parallel_world_size()
-        n_local_heads = self.model_config.hf_config.num_attention_heads // tp_size
+        _og = getattr(self.model_config.hf_config, 'o_groups', tp_size)  # Moh_7596-fix: honor _replicate_attn (TP>o_groups)
+        n_local_heads = (self.model_config.hf_config.num_attention_heads if tp_size > _og else self.model_config.hf_config.num_attention_heads // tp_size)
 
         num_decodes = kwargs.get("num_decodes")
         num_decode_tokens = kwargs.get("num_decode_tokens")
