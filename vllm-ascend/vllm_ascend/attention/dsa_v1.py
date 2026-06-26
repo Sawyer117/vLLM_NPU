@@ -5,6 +5,8 @@ from typing import TYPE_CHECKING, ClassVar, TypeAlias
 import torch
 import torch.nn.functional as F
 import torch_npu
+import sys as _moh_sys  # Moh_7596-fix: load marker
+print(f"[MOH-PATCH] dsa_v1 PATCHED build loaded (replicate-numheads) from {__file__}", file=_moh_sys.stderr, flush=True)
 import vllm.envs as envs_vllm
 from vllm.config import VllmConfig, get_current_vllm_config
 from vllm.distributed import get_tensor_model_parallel_world_size
