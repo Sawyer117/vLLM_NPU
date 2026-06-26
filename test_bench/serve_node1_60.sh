@@ -86,4 +86,5 @@ exec "$VLLM" serve "$MODEL" \
   --enable-expert-parallel \
   --gpu-memory-utilization 0.80 \
   --max-num-seqs 1 --max-model-len 1024 --max-num-batched-tokens 1024 \
-  --block-size 128 --no-enable-prefix-caching
+  --block-size 128 --no-enable-prefix-caching \
+  --enforce-eager

@@ -2424,10 +2424,11 @@ class AscendDSAImpl(DSAAttentionImpl):
                 layout_q="TND",
                 layout_kv="PA_ND",
             )[0]
-        # Moh_7596-fix: DSV4_DBG decode probe (gated; first ~16 calls only)
-        if __import__("os").environ.get("DSV4_DBG", "0") == "1":
+        # Moh_7596-fix: ALWAYS-ON decode probe (count-limited). Fires in eager mode
+        # (run server with --enforce-eager so this Python actually executes at decode).
+        if True:
             _n = globals().get("_DSV4_DBG_N", 0)
-            if _n < 16:
+            if _n < 24:
                 globals()["_DSV4_DBG_N"] = _n + 1
                 _sys = __import__("sys")
                 def _st(t):
